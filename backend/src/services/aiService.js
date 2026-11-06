@@ -1,5 +1,6 @@
 import { getOpenAIClient } from '../config/openai.js';
-import { env, isOpenAIConfigured } from '../config/env.js';
+import { env, isOpenAIConfigured, isGeminiConfigured } from '../config/env.js';
+import { geminiService } from './geminiService.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -93,65 +94,88 @@ export const generateAIResponse = async ({
   knowledgeContext = '',
   sources = []
 }) => {
-  const client = getOpenAIClient();
-
-  // If OpenAI API key is not configured, return a realistic sandbox response
-  if (!client || !isOpenAIConfigured()) {
-    logger.warn('OpenAI API is unconfigured. Generating sandbox response for testing.');
-    return generateSandboxFallbackResponse(message, chatbot, knowledgeContext, sources);
-  }
-
   const systemPrompt = buildSystemPrompt(chatbot, knowledgeContext, sources);
-  const messages = formatMessages(systemPrompt, history, message);
 
-  try {
-    // 1. Check if the SDK supports client.responses.create (Responses API)
-    if (typeof client.responses?.create === 'function') {
-      try {
-        const response = await client.responses.create({
-          model: env.OPENAI_MODEL,
-          input: message,
-          instructions: systemPrompt,
-          temperature: env.OPENAI_TEMPERATURE
-        });
+  // 1. If Google Gemini is configured, utilize Gemini 3.5 Flash intelligence
+  if (isGeminiConfigured()) {
+    try {
+      logger.info(`Generating response with Google Gemini (${env.GEMINI_MODEL})`);
+      const geminiResult = await geminiService.generateResponse({
+        systemPrompt,
+        history,
+        message,
+        temperature: chatbot.temperature || env.OPENAI_TEMPERATURE
+      });
 
-        const outputText = response.output_text || response.output?.[0]?.content?.[0]?.text || '';
-        if (outputText) {
-          return {
-            reply: outputText,
-            model: env.OPENAI_MODEL,
-            tokensUsed: response.usage?.total_tokens || 0,
-            apiUsed: 'responses',
-            sources
-          };
-        }
-      } catch (responsesErr) {
-        logger.warn('Responses API call failed, falling back to chat completions:', responsesErr.message);
-      }
+      return {
+        reply: geminiResult.reply,
+        model: geminiResult.model,
+        tokensUsed: geminiResult.tokensUsed,
+        apiUsed: 'google-gemini',
+        sources
+      };
+    } catch (geminiErr) {
+      logger.warn('Google Gemini generation failed, evaluating fallbacks:', geminiErr.message);
     }
-
-    // 2. Standard Chat Completions API
-    const completion = await client.chat.completions.create({
-      model: env.OPENAI_MODEL,
-      messages,
-      temperature: env.OPENAI_TEMPERATURE,
-      max_tokens: env.OPENAI_MAX_TOKENS
-    });
-
-    const reply = completion.choices[0]?.message?.content || 'No response generated.';
-    const tokensUsed = completion.usage?.total_tokens || 0;
-
-    return {
-      reply,
-      model: env.OPENAI_MODEL,
-      tokensUsed,
-      apiUsed: 'chat.completions',
-      sources
-    };
-  } catch (error) {
-    logger.error('OpenAI API generation failed:', error.message);
-    throw error;
   }
+
+  // 2. If OpenAI API key is configured, utilize OpenAI
+  const client = getOpenAIClient();
+  if (client && isOpenAIConfigured()) {
+    const messages = formatMessages(systemPrompt, history, message);
+
+    try {
+      // Check Responses API
+      if (typeof client.responses?.create === 'function') {
+        try {
+          const response = await client.responses.create({
+            model: env.OPENAI_MODEL,
+            input: message,
+            instructions: systemPrompt,
+            temperature: env.OPENAI_TEMPERATURE
+          });
+
+          const outputText = response.output_text || response.output?.[0]?.content?.[0]?.text || '';
+          if (outputText) {
+            return {
+              reply: outputText,
+              model: env.OPENAI_MODEL,
+              tokensUsed: response.usage?.total_tokens || 0,
+              apiUsed: 'responses',
+              sources
+            };
+          }
+        } catch (responsesErr) {
+          logger.warn('Responses API call failed, falling back to chat completions:', responsesErr.message);
+        }
+      }
+
+      // Standard Chat Completions API
+      const completion = await client.chat.completions.create({
+        model: env.OPENAI_MODEL,
+        messages,
+        temperature: env.OPENAI_TEMPERATURE,
+        max_tokens: env.OPENAI_MAX_TOKENS
+      });
+
+      const reply = completion.choices[0]?.message?.content || 'No response generated.';
+      const tokensUsed = completion.usage?.total_tokens || 0;
+
+      return {
+        reply,
+        model: env.OPENAI_MODEL,
+        tokensUsed,
+        apiUsed: 'chat.completions',
+        sources
+      };
+    } catch (openAiErr) {
+      logger.error('OpenAI API generation failed:', openAiErr.message);
+    }
+  }
+
+  // 3. Fallback to sandbox response for testing or offline environments
+  logger.info('Generating grounded sandbox response.');
+  return generateSandboxFallbackResponse(message, chatbot, knowledgeContext, sources);
 };
 
 /**

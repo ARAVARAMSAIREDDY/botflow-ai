@@ -29,6 +29,10 @@ export const env = {
   OPENAI_TEMPERATURE: parseFloat(process.env.OPENAI_TEMPERATURE) || 0.3,
   OPENAI_MAX_TOKENS: parseInt(process.env.OPENAI_MAX_TOKENS, 10) || 800,
 
+  // Google Gemini AI
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
+
   // RAG & Embeddings
   OPENAI_EMBEDDING_MODEL: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small',
   CHUNK_SIZE: parseInt(process.env.CHUNK_SIZE, 10) || 800,
@@ -57,6 +61,9 @@ export const env = {
 };
 
 export const isSupabaseConfigured = () => {
+  if (process.env.NODE_ENV === 'test' && !process.env.TEST_LIVE_SUPABASE) {
+    return false;
+  }
   return Boolean(
     env.SUPABASE_URL && 
     (env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY) &&
@@ -65,7 +72,17 @@ export const isSupabaseConfigured = () => {
 };
 
 export const isOpenAIConfigured = () => {
+  if (process.env.NODE_ENV === 'test' && !process.env.TEST_LIVE_AI) {
+    return false;
+  }
   return Boolean(env.OPENAI_API_KEY && env.OPENAI_API_KEY.trim().length > 10);
+};
+
+export const isGeminiConfigured = () => {
+  if (process.env.NODE_ENV === 'test' && !process.env.TEST_LIVE_AI) {
+    return false;
+  }
+  return Boolean(env.GEMINI_API_KEY && env.GEMINI_API_KEY.trim().length > 10);
 };
 
 export const isRazorpayConfigured = () => {
