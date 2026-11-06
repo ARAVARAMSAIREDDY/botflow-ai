@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horizon Medical Center - Patient Care Portal</title>
+  <style>
+    /* Aggressive host styling to verify Shadow DOM CSS isolation */
+    * {
+      box-sizing: border-box;
+      font-family: 'Georgia', serif;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #1f2937;
+    }
+    /* Host style overrides that MUST NOT leak into the Shadow DOM widget */
+    button {
+      background: #dc2626 !important;
+      color: #fff !important;
+      border: 3px solid #7f1d1d !important;
+      border-radius: 0 !important;
+    }
+    header {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 24px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid #3b82f6;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: -0.5px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+    .hero-card {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+    }
+    h1 {
+      color: #1e3a8a;
+      margin-top: 0;
+      font-size: 32px;
+    }
+    p {
+      line-height: 1.6;
+      font-size: 16px;
+      color: #4b5563;
+    }
+    .info-badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+    .btn-portal {
+      display: inline-block;
+      padding: 12px 24px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+    .footer {
+      text-align: center;
+      padding: 30px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    .widget-test-panel {
+      background: #eef2ff;
+      border: 2px dashed #6366f1;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">🏥 Horizon Medical Center</div>
+    <div>Emergency: (555) 911-CARE</div>
+  </header>
+
+  <div class="container">
+    <div class="hero-card">
+      <div class="info-badge">Patient Assistance & FAQ</div>
+      <h1>Welcome to Horizon Medical Center</h1>
+      <p>
+        Our comprehensive healthcare facility provides 24/7 emergency response, cardiology services,
+        inpatient routing, and specialist consultations. Use our automated patient assistant in the bottom corner
+        to inquire about OPD clinic hours, pre-op fasting steps, or visiting policies.
+      </p>
+
+      <div class="widget-test-panel">
+        <h3 style="margin-top:0; color:#3730a3;">BotFlow AI Embed Verification</h3>
+        <p style="font-size:14px; margin-bottom:12px;">
+          This external test website embeds the BotFlow AI standalone JavaScript widget using a single <code>&lt;script&gt;</code> tag with <strong>Shadow DOM</strong> encapsulation.
+        </p>
+        <button onclick="window.BotFlow('toggle')" class="btn-portal">
+          Toggle Chatbot via JS API
+        </button>
+        <button onclick="window.BotFlow('open')" class="btn-portal" style="margin-left: 8px;">
+          Open Widget
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 Horizon Medical Center. All rights reserved.
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- BotFlow AI Universal Website Embeddable Chatbot Script Tag        -->
+  <!-- ================================================================= -->
+  <script
+    src="http://localhost:5001/widget/botflow.js"
+    data-chatbot-id="00000000-0000-0000-0000-000000000001"
+    data-api-url="http://localhost:5001"
+    data-position="bottom-right"
+    async
+    defer
+  ></script>
+
+</body>
+</html>

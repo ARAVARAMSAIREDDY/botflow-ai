@@ -1,0 +1,82 @@
+name: BotFlow AI - Continuous Integration & Production Verification
+
+on:
+  push:
+    branches: [ main, production ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    name: Backend Test Suite (Node.js 20)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run Backend Unit & Integration Tests
+        working-directory: backend
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci-test-jwt-secret-key-at-least-32-chars-long
+          PORT: 5001
+
+  frontend-build:
+    name: Frontend Production Build & Code Split Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Execute Vite Production Build
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.botflow.ai/api
+          VITE_WIDGET_URL: https://api.botflow.ai/widget/botflow.js
+          VITE_APP_ENV: production
+
+      - name: Verify Dist Artifacts
+        run: |
+          test -f dist/index.html || exit 1
+          test -f dist/robots.txt || exit 1
+          test -f dist/sitemap.xml || exit 1
+
+  security-audit:
+    name: Dependency Security Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Audit Backend Dependencies
+        working-directory: backend
+        run: npm audit --audit-level=high || true
+
+      - name: Audit Frontend Dependencies
+        run: npm audit --audit-level=high || true
