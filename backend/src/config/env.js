@@ -21,7 +21,7 @@ export const env = {
   // Allowed CORS origins for authenticated API routes
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
-    : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'],
+    : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000', 'https://blotflow-ai.netlify.app'],
 
   // OpenAI
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',

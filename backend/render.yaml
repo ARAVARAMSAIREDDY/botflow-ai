@@ -20,9 +20,9 @@ services:
       - key: TRUST_PROXY
         value: "1"
       - key: CLIENT_URL
-        sync: false
+        value: https://blotflow-ai.netlify.app
       - key: ALLOWED_ORIGINS
-        sync: false
+        value: https://blotflow-ai.netlify.app,http://localhost:5173
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL
