@@ -1,0 +1,26 @@
+# ========================================================================
+# BotFlow AI - Netlify Production Configuration
+# ========================================================================
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Single-Page Application (SPA) routing: rewrite all requests to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Cache-Control headers for optimized static asset delivery
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
